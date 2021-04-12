@@ -1,0 +1,11 @@
+{
+    //"image": "tensorflow/tensorflow:latest-gpu",
+    "image": "kasper/tensorflow:2.3.0-gpu",
+	"runArgs": [
+		"--gpus=all"
+	],
+	"extensions": [
+		"donjayamanne.python-extension-pack",
+		"eamodio.gitlens"
+	],
+}
