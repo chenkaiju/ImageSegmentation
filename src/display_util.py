@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-# Customized callback
 def create_mask(pred_mask):
   pred_mask = tf.argmax(pred_mask, axis=-1)
   pred_mask = tf.cast(pred_mask, tf.float32)
@@ -37,27 +36,3 @@ def create_true_mask(true_mask):
   trimap = tf.concat([class1, class2, class3], axis=3)
 
   return trimap
-
-class display_result_callback(tf.keras.callbacks.Callback):
-  def __init__(self, summary_writer=None, validation_data=None):
-    self.writer = summary_writer
-    self.validation_dataset = validation_data
-
-  def on_epoch_end(self, epoch, logs=None):
-    
-    if self.validation_dataset:
-      
-      num = 1
-      data = self.validation_dataset.take(num)
-
-      tbimage1 = []
-      for image, true_mask in data:
-
-        pred_mask = self.model.predict(image)
-        tbimage = create_mask(pred_mask)
-        tbimage2 = create_true_mask(true_mask)
-        tbimages1 = tf.concat([image, tbimage, tbimage2], axis=2)
-
-      with self.writer.as_default():
-        tf.summary.image('test image', tbimages1, max_outputs=8, step=epoch)
-    
