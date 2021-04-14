@@ -127,7 +127,7 @@ if TRAIN:
 
 
 #%% Make prediction
-prediction_folder = os.path.abspath(os.path.join('./', 'unet'))
+prediction_folder = os.path.abspath(os.path.join('./', 'predict_unet'))
 if not os.path.exists(prediction_folder):
     os.makedirs(prediction_folder)
 
