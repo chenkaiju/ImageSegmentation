@@ -110,7 +110,7 @@ class UNetPlusPlusModel():
               metrics=['accuracy'])
 
     self.model.summary()
-    tf.keras.utils.plot_model(self.model, to_file='unet_simplified.png', show_shapes=True)
+    tf.keras.utils.plot_model(self.model, to_file='unet_plus_plus.png', show_shapes=True)
 
     return self.model
 
