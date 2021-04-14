@@ -47,6 +47,8 @@ class UNetPlusPlusModel():
 
     self.callback = [tensorboard_callback, savecheckpoint_callback]
 
+    self._early_stop_callback = None
+
   def ResumeModel(self, model_path=None):
     self.model = tf.keras.models.load_model(model_path, compile=True)
 
@@ -54,6 +56,11 @@ class UNetPlusPlusModel():
   
   def customized_callback(self, callback_list):
         self.callback.extend(callback_list)
+  
+  def enable_early_stopping(self):
+      self._early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+      self.callback.extend([self._early_stop_callback])
+
 
   def BuildModel(self, learning_rate=1e-4): # Model definition
 
@@ -107,10 +114,11 @@ class UNetPlusPlusModel():
 
     return self.model
 
-  def train(self, epochs = 1, steps_per_epoch = 1, validation_steps = 1, train_data = None, validation_data = None):
+  def train(self, epochs = 1, steps_per_epoch = 1, validation_steps = 1, train_data = None, validation_data = None, 
+            enable_early_stopping=False):
 
-    #if (validation_data is not None):
-    #  self.callback.extend([ModelCustomedCallback(self.summary_writer, validation_data)])
+    if enable_early_stopping is True:
+      self.enable_early_stopping()
 
     history = self.model.fit(x=train_data, 
                           epochs=epochs,

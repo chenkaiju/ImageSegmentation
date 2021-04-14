@@ -108,7 +108,7 @@ RESUME = False
 TRAIN = True
 
 checkpoint_dir = 'check_point'
-summary_folder = 'logs'
+summary_folder = 'logs_unetpp'
 model = UNetPlusPlusModel(output_channels=OUTPUT_CHANNELS, checkpoint_dir=checkpoint_dir, summary_folder=summary_folder)
 if RESUME :
     success = model.ResumeModel(model_path='check_point/model.h5')
@@ -124,7 +124,8 @@ if TRAIN:
     model_history = model.train(train_data=train_dataset, epochs=EPOCHS,
                           steps_per_epoch=STEPS_PER_EPOCH,
                           validation_steps=VALIDATION_STEPS,
-                          validation_data=test_dataset)
+                          validation_data=test_dataset,
+                          enable_early_stopping=True)
 
     loss = model_history.history['loss']
     val_loss = model_history.history['val_loss']
