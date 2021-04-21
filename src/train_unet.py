@@ -74,62 +74,70 @@ def load_image_test(datapoint):
   return input_image, input_mask
 
 
-TRAIN_LENGTH = info.splits['train'].num_examples
-BATCH_SIZE = 8
-BUFFER_SIZE = 1000
-STEPS_PER_EPOCH = TRAIN_LENGTH // BATCH_SIZE
+def main():
 
-train = dataset['train'].map(load_image_train, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-test = dataset['test'].map(load_image_test)
+    TRAIN_LENGTH = info.splits['train'].num_examples
+    BATCH_SIZE = 8
+    BUFFER_SIZE = 1000
+    STEPS_PER_EPOCH = TRAIN_LENGTH // BATCH_SIZE
+
+    train = dataset['train'].map(load_image_train, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    test = dataset['test'].map(load_image_test)
 
 
-train_dataset = train.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
-train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-test_dataset = test.batch(BATCH_SIZE)
+    train_dataset = train.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+    train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    test_dataset = test.batch(BATCH_SIZE)
 
-# for image, mask in train.take(1):
-#   sample_image, sample_mask = image, mask
-# display([sample_image, sample_mask])
+    # for image, mask in train.take(1):
+    #   sample_image, sample_mask = image, mask
+    # display([sample_image, sample_mask])
 
-# %%
-# Define Model
+    # %%
+    # Define Model
 
-EPOCHS = 20
-VAL_SUBSPLITS = 5
-VALIDATION_STEPS = info.splits['test'].num_examples//BATCH_SIZE//VAL_SUBSPLITS
-OUTPUT_CHANNELS = 3
-RESUME = False
-TRAIN = True
+    EPOCHS = 20
+    VAL_SUBSPLITS = 5
+    VALIDATION_STEPS = info.splits['test'].num_examples//BATCH_SIZE//VAL_SUBSPLITS
+    OUTPUT_CHANNELS = 3
+    RESUME = False
+    TRAIN = True
 
-checkpoint_dir = 'check_point_unet'
-summary_folder = 'logs_unet'
-model = UNetModel(output_channels=OUTPUT_CHANNELS, checkpoint_dir=checkpoint_dir, summary_folder=summary_folder)
-if RESUME :
-    success = model.ResumeModel(model_path='check_point_unet/model.h5')
-    if not success:
+    working_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    checkpoint_dir = os.path.join(working_path, 'check_point_unet')
+    summary_folder = os.path.join(working_path, 'logs_unet')
+    model = UNetModel(output_channels=OUTPUT_CHANNELS, checkpoint_dir=checkpoint_dir, summary_folder=summary_folder,
+                    work_dir=working_path)
+    if RESUME :
+        success = model.ResumeModel(model_path='check_point_unet/model.h5')
+        if not success:
+            model.BuildModel()
+    else:
         model.BuildModel()
-else:
-    model.BuildModel()
 
-summary_writer = tf.summary.create_file_writer(os.path.join(summary_folder,'test'))
-model.customized_callback([display_result_callback(summary_writer=summary_writer, validation_data = test_dataset)])
+    summary_writer = tf.summary.create_file_writer(os.path.join(summary_folder,'test'))
+    model.customized_callback([display_result_callback(summary_writer=summary_writer, validation_data = test_dataset)])
 
-if TRAIN:
-    model_history = model.train(train_data=train_dataset, epochs=EPOCHS,
-                          steps_per_epoch=STEPS_PER_EPOCH,
-                          validation_steps=VALIDATION_STEPS,
-                          validation_data=test_dataset,
-                          enable_early_stopping=True)
+    if TRAIN:
+        model_history = model.train(train_data=train_dataset, epochs=EPOCHS,
+                              steps_per_epoch=STEPS_PER_EPOCH,
+                              validation_steps=VALIDATION_STEPS,
+                              validation_data=test_dataset,
+                              enable_early_stopping=True)
 
-    loss = model_history.history['loss']
-    val_loss = model_history.history['val_loss']
+        loss = model_history.history['loss']
+        val_loss = model_history.history['val_loss']
 
 
 
-#%% Make prediction
-prediction_folder = os.path.abspath(os.path.join('./', 'predict_unet'))
-if not os.path.exists(prediction_folder):
-    os.makedirs(prediction_folder)
+    #%% Make prediction
+    prediction_folder = os.path.abspath(os.path.join(working_path, 'predict_unet'))
+    if not os.path.exists(prediction_folder):
+        os.makedirs(prediction_folder)
 
-show_predictions(model=model, dataset=test_dataset, num=1, save=True, save_folder=prediction_folder)
-# %%
+    show_predictions(model=model, dataset=test_dataset, num=1, save=True, save_folder=prediction_folder)
+
+
+if __name__=="__main__":
+
+    main()

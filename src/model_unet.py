@@ -3,18 +3,20 @@ from tensorflow_examples.models.pix2pix import pix2pix
 import os
 
 class UNetModel():
-    def __init__(self, output_channels=3, checkpoint_dir='checkpoint', summary_folder = 'logs'):
+    def __init__(self, output_channels=3, checkpoint_dir='checkpoint', summary_folder = 'logs', work_dir = './'):
         
         self._model = None
         self._training_dataset = None
         self._validation_dataset = None
+        self._workdir = work_dir
         self._output_channels = output_channels
-
-        if not os.path.exists(checkpoint_dir):
-            os.makedirs(checkpoint_dir)
-
+        
         self._checkpoint_dir = checkpoint_dir
         self._summary_folder = summary_folder
+
+        if not os.path.exists(self._checkpoint_dir):
+            print('make dir: ', self._checkpoint_dir)
+            os.makedirs(self._checkpoint_dir)
 
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=self._summary_folder, 
                                                        profile_batch=0, 
@@ -94,7 +96,9 @@ class UNetModel():
                     metrics=['accuracy'])
 
         self._model.summary()
-        tf.keras.utils.plot_model(self._model, to_file='unet.png', show_shapes=True)
+
+        save_path = os.path.join(self._workdir, 'unet.png')
+        tf.keras.utils.plot_model(self._model, to_file=save_path, show_shapes=True)
 
         return self._model
 

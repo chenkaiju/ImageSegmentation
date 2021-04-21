@@ -1,6 +1,6 @@
 {
     //"image": "tensorflow/tensorflow:latest-gpu",
-    "image": "kasper/tensorflow:2.3.0-gpu",
+    "image": "docker-train/imageseg:tf2.3-gpu",
 	"runArgs": [
 		"--gpus=all"
 	],
